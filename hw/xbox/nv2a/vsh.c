@@ -828,7 +828,8 @@ void vsh_translate(uint16_t version,
     /* pre-divide and output the generated W so we can do persepctive correct
      * interpolation manually. OpenGL can't, since we give it a W of 1 to work
      * around the perspective divide */
-    mstring_append(body,
+    mstring_append(
+        body,
         "  if (oPos.w == 0.0 || isinf(oPos.w)) {\n"
         "    vtx_inv_w = 1.0;\n"
         "  } else {\n"
@@ -837,18 +838,18 @@ void vsh_translate(uint16_t version,
         "  vtx_inv_w_flat = vtx_inv_w;\n"
     );
 
-    mstring_append(body,
-        /* the shaders leave the result in screen space, while
-         * opengl expects it in clip space.
-         * TODO: the pixel-center co-ordinate differences should handled
-         */
-        "  oPos.x = 2.0 * (oPos.x - surfaceSize.x * 0.5) / surfaceSize.x;\n"
-        "  oPos.y = -2.0 * (oPos.y - surfaceSize.y * 0.5) / surfaceSize.y;\n"
+    mstring_append(
+        body,
+        "  vec2 fixed_pos = fix_pixel_rounding(oPos.xy, 1.0);\n"
+        "  oPos.xy = 2.0 * fixed_pos / surfaceSize - vec2(1.0);\n"
+        "  oPos.y *= -1.0;\n"
     );
+
     if (z_perspective) {
         mstring_append(body, "  oPos.z = oPos.w;\n");
     }
-    mstring_append(body,
+    mstring_append(
+        body,
         /* Map the clip range into clip space so z is clipped correctly.
          * Note this makes the values in the depth buffer wrong. This should be
          * handled with gl_ClipDistance instead, but that has performance issues
@@ -869,5 +870,4 @@ void vsh_translate(uint16_t version,
         "    oPos.w = 1.0;\n"
         "  }\n"
     );
-
 }
