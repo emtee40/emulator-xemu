@@ -25,8 +25,9 @@
 #ifndef XEMU_INPUT_H
 #define XEMU_INPUT_H
 
-#include <SDL2/SDL.h>
 #include "qemu/queue.h"
+#include "xemu-settings.h"
+#include <SDL2/SDL.h>
 
 enum controller_state_buttons_mask {
     CONTROLLER_BUTTON_A          = (1 << 0),
@@ -58,6 +59,12 @@ enum controller_state_axis_index {
     CONTROLLER_AXIS__COUNT,
 };
 
+#ifdef __cplusplus
+using GamepadMappings = struct config::input::gamepad_mappings;
+#else
+typedef struct gamepad_mappings GamepadMappings;
+#endif
+
 enum controller_input_device_type {
     INPUT_DEVICE_SDL_KEYBOARD,
     INPUT_DEVICE_SDL_GAMECONTROLLER,
@@ -78,7 +85,6 @@ typedef struct ControllerState {
     uint32_t animate_trigger_end;
 
     // Rumble state
-    bool rumble_enabled;
     uint16_t rumble_l, rumble_r;
 
     enum controller_input_device_type type;
@@ -87,6 +93,8 @@ typedef struct ControllerState {
     SDL_Joystick       *sdl_joystick;
     SDL_JoystickID      sdl_joystick_id;
     SDL_JoystickGUID    sdl_joystick_guid;
+
+    GamepadMappings *controller_map;
 
     int   bound;  // Which port this input device is bound to
     void *device; // DeviceState opaque
